@@ -1,5 +1,8 @@
 # AI Conference Deadlines Bot
 
+**Live:** [@AIConfDeadlineBot](https://t.me/AIConfDeadlineBot) · [open the Mini
+App](https://t.me/AIConfDeadlineBot/deadlines)
+
 A Telegram bot that tracks AI/ML conference paper deadlines, running entirely
 on [Cloudflare Workers](https://developers.cloudflare.com/workers/) with
 [D1](https://developers.cloudflare.com/d1/) for storage.
