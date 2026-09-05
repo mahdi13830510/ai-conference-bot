@@ -11,6 +11,14 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
+	/*
+	 * Public origin of this Worker. Telegram needs an absolute
+	 * HTTPS URL for Mini App buttons, and a Worker cannot infer
+	 * its own hostname. Not a secret, so it lives here.
+	 */
+	"vars": {
+		"PUBLIC_URL": "https://ai-confrence-bot.ai-confrence.workers.dev"
+	},
 	"d1_databases": [
 		{
 			"binding": "DB",
