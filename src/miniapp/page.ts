@@ -251,7 +251,11 @@ export const MINI_APP_HTML = String.raw`<!doctype html>
   };
 
   function api(path, body) {
-    return fetch("api/" + path, {
+    /*
+     * Absolute: the shell is served at "/app" with no trailing
+     * slash, so a relative "api/..." would resolve to "/api/...".
+     */
+    return fetch("/app/api/" + path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({ initData: initData }, body || {}))
