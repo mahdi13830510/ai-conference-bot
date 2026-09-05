@@ -1,20 +1,26 @@
 import {
 	Env,
 	TelegramUpdate,
+	User,
 } from "../types";
 
 import {
 	sendMessage,
-	sendTypingAction,
+	sendChatAction,
 } from "../telegram";
 
 import {
+	getUser,
 	setTimezone,
+	takePendingInput,
+	addSavedSearch,
 } from "../database";
 
 import {
 	topicsMenu,
 	locationsMenu,
+	rankMenu,
+	formatMenu,
 } from "../ui";
 
 import {
@@ -32,391 +38,387 @@ import {
 import {
 	showStart,
 	showReminders,
-	showSettings,
 	showHelp,
+	showTimeline,
+	showSavedSearches,
+	promptFor,
 } from "../views/menu";
+
+import {
+	showSettings,
+} from "../views/settings";
+
+import {
+	sendCalendar,
+} from "../views/export";
 
 import {
 	handleAdmin,
 } from "./admin";
 
+import {
+	escapeHtml,
+} from "../format";
+
 /**
- * Parses and dispatches slash commands sent to the bot.
+ * Labels on the persistent bottom keyboard arrive as ordinary
+ * text, so they are mapped to the same actions as the commands.
  */
+const KEYBOARD_SHORTCUTS: Record<string, string> = {
+	"📅 Upcoming": "/upcoming",
+	"🎯 My Feed": "/myfeed",
+	"🔎 Search": "/search",
+	"⭐ Saved": "/saved",
+	"🔔 Reminders": "/reminders",
+	"⚙️ Settings": "/settings",
+};
 
 export async function handleMessage(
 	env: Env,
-	message: NonNullable<
-		TelegramUpdate["message"]
-	>
-) {
+	message: NonNullable<TelegramUpdate["message"]>
+): Promise<void> {
 
 	const chatId =
 		message.chat.id;
 
-	const user =
-		message.from;
+	await ensureUser(env, message.from);
 
-	await ensureUser(
-		env,
-		user
-	);
-
-	const text =
+	const raw =
 		message.text?.trim() || "";
 
-	if (!text) {
+	if (!raw) {
 		return;
 	}
 
+	const userId =
+		String(chatId);
+
 	/*
-	 * Remove bot username:
-	 *
-	 * /start@MyBot
+	 * A reply to one of the bot's force-reply prompts is
+	 * answered as that prompt, not as a command.
 	 */
+	if (!raw.startsWith("/")) {
+
+		const pending =
+			await takePendingInput(env, userId);
+
+		if (pending) {
+			await handlePendingInput(env, chatId, pending, raw);
+			return;
+		}
+	}
+
+	const text =
+		KEYBOARD_SHORTCUTS[raw] ?? raw;
+
+	/*
+	 * Plain text is treated as a search. It is what people
+	 * expect, and it beats scolding them about syntax.
+	 */
+	if (!text.startsWith("/")) {
+
+		await sendChatAction(env, chatId);
+
+		await showList(env, chatId, "search", text, 1);
+
+		return;
+	}
 
 	const [rawCommand, ...args] =
 		text.split(/\s+/);
 
 	const command =
-		rawCommand
-			.split("@")[0]
-			.toLowerCase();
+		rawCommand.split("@")[0].toLowerCase();
 
 	const argument =
 		args.join(" ").trim();
 
-	if (
-		command === "/start"
-	) {
+	await dispatch(env, chatId, command, argument);
+}
+
+async function handlePendingInput(
+	env: Env,
+	chatId: number,
+	kind: string,
+	value: string
+): Promise<void> {
+
+	if (kind === "search") {
+		await showList(env, chatId, "search", value, 1);
+		return;
+	}
+
+	if (kind === "save_search") {
+
+		await addSavedSearch(env, String(chatId), value);
+
+		await sendMessage(
+			env,
+			chatId,
+			`🔎 Watching <code>${escapeHtml(value)}</code>.\n\n` +
+			`You will hear from me when a newly listed conference ` +
+			`matches it.`
+		);
+
+		await showSavedSearches(env, chatId);
+
+		return;
+	}
+
+	if (kind === "timezone") {
+		await applyTimezone(env, chatId, value);
+	}
+}
+
+async function applyTimezone(
+	env: Env,
+	chatId: number,
+	value: string
+): Promise<void> {
+
+	try {
 
 		/*
-		 * Deep link:
-		 *
-		 * /start conf_icml27
+		 * Intl throws on an unknown zone, which is the cheapest
+		 * available validation.
 		 */
+		new Intl.DateTimeFormat("en-US", { timeZone: value });
 
-		if (
-			argument.startsWith(
-				"conf_"
-			)
-		) {
+		await setTimezone(env, String(chatId), value);
 
-			const conferenceId =
-				argument.substring(
-					"conf_".length
+		await sendMessage(
+			env,
+			chatId,
+			`✅ Timezone set to <b>${escapeHtml(value)}</b>.\n\n` +
+			`All deadlines are now shown in your local time.`
+		);
+
+	} catch {
+
+		await sendMessage(
+			env,
+			chatId,
+			`❌ <b>${escapeHtml(value)}</b> is not a timezone I ` +
+			`recognise.\n\nUse an IANA name, for example ` +
+			`<code>Europe/Amsterdam</code>.`
+		);
+	}
+}
+
+async function dispatch(
+	env: Env,
+	chatId: number,
+	command: string,
+	argument: string
+): Promise<void> {
+
+	switch (command) {
+
+		case "/start": {
+
+			/*
+			 * Deep link: /start conf_icml27
+			 */
+			if (argument.startsWith("conf_")) {
+
+				await showConference(
+					env,
+					chatId,
+					argument.slice("conf_".length)
 				);
 
-			await showConference(
-				env,
-				chatId,
-				conferenceId
-			);
+				return;
+			}
 
+			await showStart(env, chatId);
 			return;
 		}
 
-		await showStart(
-			env,
-			chatId
-		);
+		case "/upcoming":
+			await sendChatAction(env, chatId);
+			await showList(env, chatId, "upcoming", undefined, 1);
+			return;
 
-		return;
-	}
+		case "/myfeed":
+			await sendChatAction(env, chatId);
+			await showList(env, chatId, "feed", String(chatId), 1);
+			return;
 
-	if (
-		command === "/upcoming"
-	) {
+		case "/saved":
+			await showList(env, chatId, "saved", String(chatId), 1);
+			return;
 
-		await sendTypingAction(
-			env,
-			chatId
-		);
+		case "/search":
 
-		await showList(
-			env,
-			chatId,
-			"upcoming",
-			undefined,
-			1
-		);
+			if (!argument) {
+				await promptFor(env, chatId, "search");
+				return;
+			}
 
-		return;
-	}
+			await sendChatAction(env, chatId);
+			await showList(env, chatId, "search", argument, 1);
+			return;
 
-	if (
-		command === "/search"
-	) {
-
-		if (!argument) {
-
+		case "/topics":
 			await sendMessage(
 				env,
 				chatId,
-				`🔎 Search conferences
-
-Use:
-
-/search federated learning
-
-or:
-
-/search privacy`
+				"🏷 <b>Browse by topic</b>",
+				topicsMenu()
 			);
+			return;
 
+		case "/locations":
+			await sendMessage(
+				env,
+				chatId,
+				"🌍 <b>Browse by location</b>",
+				locationsMenu()
+			);
+			return;
+
+		case "/rank": {
+
+			const rank =
+				argument.trim().toUpperCase();
+
+			if (!["A*", "A", "B", "C"].includes(rank)) {
+
+				await sendMessage(
+					env,
+					chatId,
+					"🏅 <b>Browse by CORE rank</b>",
+					rankMenu()
+				);
+
+				return;
+			}
+
+			await showList(env, chatId, "rank", rank, 1);
 			return;
 		}
 
-		await showList(
-			env,
-			chatId,
-			"search",
-			argument,
-			1
-		);
+		case "/format": {
 
-		return;
-	}
+			const format =
+				argument.trim().toLowerCase();
 
-	if (
-		command === "/topics"
-	) {
+			if (
+				!["in-person", "virtual", "hybrid"].includes(format)
+			) {
 
-		await sendMessage(
-			env,
-			chatId,
-			"🏷 Browse by Topic",
-			topicsMenu()
-		);
+				await sendMessage(
+					env,
+					chatId,
+					"🔀 <b>Browse by format</b>",
+					formatMenu()
+				);
 
-		return;
-	}
+				return;
+			}
 
-	if (
-		command === "/locations"
-	) {
-
-		await sendMessage(
-			env,
-			chatId,
-			"🌍 Browse by Location",
-			locationsMenu()
-		);
-
-		return;
-	}
-
-	if (
-		command === "/saved"
-	) {
-
-		await showList(
-			env,
-			chatId,
-			"saved",
-			String(chatId),
-			1
-		);
-
-		return;
-	}
-
-	if (
-		command === "/reminders"
-	) {
-
-		await showReminders(
-			env,
-			chatId
-		);
-
-		return;
-	}
-
-	if (
-		command === "/myfeed"
-	) {
-
-		await showList(
-			env,
-			chatId,
-			"feed",
-			String(chatId),
-			1
-		);
-
-		return;
-	}
-
-	if (
-		command === "/settings"
-	) {
-
-		await showSettings(
-			env,
-			chatId
-		);
-
-		return;
-	}
-
-	if (
-		command === "/help"
-	) {
-
-		await showHelp(
-			env,
-			chatId
-		);
-
-		return;
-	}
-
-	/*
-	 * Location shortcut:
-	 *
-	 * /location Germany
-	 */
-
-	if (
-		command === "/location"
-	) {
-
-		if (!argument) {
-
-			await sendMessage(
-				env,
-				chatId,
-				"Example:\n/location Germany"
-			);
-
+			await showList(env, chatId, "format", format, 1);
 			return;
 		}
 
-		await showList(
-			env,
-			chatId,
-			"location",
-			argument,
-			1
-		);
+		case "/location":
 
-		return;
-	}
+			if (!argument) {
 
-	/*
-	 * Deadline shortcut:
-	 *
-	 * /deadline 30
-	 */
+				await sendMessage(
+					env,
+					chatId,
+					"Example:\n<code>/location Germany</code>",
+					locationsMenu()
+				);
 
-	if (
-		command === "/deadline"
-	) {
+				return;
+			}
 
-		const days =
-			Number(argument) || 30;
+			await showList(env, chatId, "location", argument, 1);
+			return;
 
-		await showList(
-			env,
-			chatId,
-			"deadline",
-			String(
-				Math.min(
-					Math.max(
-						days,
-						1
-					),
-					365
-				)
-			),
-			1
-		);
+		case "/deadline": {
 
-		return;
-	}
+			const days =
+				Math.min(Math.max(Number(argument) || 30, 1), 365);
 
-	/*
-	 * Timezone:
-	 *
-	 * /timezone Europe/Amsterdam
-	 */
-
-	if (
-		command === "/timezone"
-	) {
-
-		if (!argument) {
-
-			await sendMessage(
-				env,
-				chatId,
-				"Example:\n/timezone Europe/Amsterdam"
-			);
-
+			await showList(env, chatId, "deadline", String(days), 1);
 			return;
 		}
 
-		try {
+		case "/nextweek":
+			await showList(env, chatId, "deadline", "7", 1);
+			return;
 
-			new Intl.DateTimeFormat(
-				"en-US",
-				{
-					timeZone:
-						argument,
-				}
-			);
+		case "/thismonth":
+			await showList(env, chatId, "deadline", "30", 1);
+			return;
 
-			await setTimezone(
-				env,
-				String(chatId),
-				argument
-			);
+		case "/timeline":
+			await showTimeline(env, chatId);
+			return;
+
+		case "/reminders":
+			await showReminders(env, chatId);
+			return;
+
+		case "/watch":
+
+			if (!argument) {
+				await promptFor(env, chatId, "save_search");
+				return;
+			}
+
+			await addSavedSearch(env, String(chatId), argument);
 
 			await sendMessage(
 				env,
 				chatId,
-				`✅ Timezone set to ${argument}`
+				`🔎 Watching <code>${escapeHtml(argument)}</code>.`
 			);
 
-		} catch {
+			await showSavedSearches(env, chatId);
+			return;
+
+		case "/watches":
+			await showSavedSearches(env, chatId);
+			return;
+
+		case "/export":
+			await sendCalendar(env, chatId, "saved");
+			return;
+
+		case "/settings":
+			await showSettings(env, chatId);
+			return;
+
+		case "/timezone":
+
+			if (!argument) {
+				await promptFor(env, chatId, "timezone");
+				return;
+			}
+
+			await applyTimezone(env, chatId, argument);
+			return;
+
+		case "/help":
+			await showHelp(env, chatId);
+			return;
+
+		case "/admin":
+			await handleAdmin(env, chatId, argument);
+			return;
+
+		default:
 
 			await sendMessage(
 				env,
 				chatId,
-				"❌ Invalid timezone.\n\nExample:\n/timezone Europe/Amsterdam"
+				`I don't know <code>${escapeHtml(command)}</code>.\n\n` +
+				`Send /help for the full list, or just type what ` +
+				`you are looking for.`
 			);
-		}
-
-		return;
 	}
-
-	/*
-	 * Admin
-	 */
-
-	if (
-		command === "/admin"
-	) {
-
-		await handleAdmin(
-			env,
-			chatId,
-			argument
-		);
-
-		return;
-	}
-
-	/*
-	 * Ignore normal group text.
-	 *
-	 * Users should use commands or inline mode.
-	 */
-
-	await sendMessage(
-		env,
-		chatId,
-		"I didn't recognize that command.\n\nTry /start."
-	);
 }
