@@ -3,3 +3,9 @@
 
 TELEGRAM_BOT_TOKEN="123456:your-bot-token"
 ADMIN_TELEGRAM_ID="your-numeric-telegram-user-id"
+
+# Any random string; must match the secret_token given to setWebhook.
+TELEGRAM_WEBHOOK_SECRET="change-me"
+
+# Public origin of the worker, used to build Mini App URLs.
+PUBLIC_URL="http://localhost:8787"
