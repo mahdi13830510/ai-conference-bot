@@ -350,7 +350,11 @@ export async function searchConferences(
 	query: string,
 	page: number,
 	pageSize: number,
-	orderBy?: string
+	orderBy?: string,
+	extra?: {
+		where: string;
+		params: unknown[];
+	}
 ): Promise<{
 	rows: DbConference[];
 	total: number;
@@ -411,11 +415,21 @@ export async function searchConferences(
 	const placeholders =
 		ids.map(() => "?").join(", ");
 
+	/*
+	 * Filters stay in force while searching, so the chips in the
+	 * UI keep meaning what they say.
+	 */
 	const where =
-		`id IN (${placeholders})`;
+		`id IN (${placeholders})` +
+		(extra ? ` AND ${extra.where}` : "");
+
+	const params = [
+		...ids,
+		...(extra?.params ?? []),
+	];
 
 	const total =
-		await countConferences(env, where, ids);
+		await countConferences(env, where, params);
 
 	const rows =
 		await listConferences(
@@ -424,7 +438,7 @@ export async function searchConferences(
 				page,
 				pageSize,
 				where,
-				params: ids,
+				params,
 				orderBy,
 			}
 		);
@@ -2310,4 +2324,39 @@ export async function setLastList(
 ): Promise<void> {
 
 	await updateUser(env, telegramId, "last_list", route);
+}
+
+/**
+ * Which of these conference ids the user has saved.
+ *
+ * Lets a list render correct save state in one query instead of
+ * one per row.
+ */
+export async function getSavedIds(
+	env: Env,
+	telegramId: string,
+	conferenceIds: string[]
+): Promise<Set<string>> {
+
+	if (!conferenceIds.length) {
+		return new Set();
+	}
+
+	const placeholders =
+		conferenceIds.map(() => "?").join(", ");
+
+	const result =
+		await env.DB
+			.prepare(`
+        SELECT conference_id
+        FROM saved_conferences
+        WHERE telegram_id = ?
+          AND conference_id IN (${placeholders})
+      `)
+			.bind(telegramId, ...conferenceIds)
+			.all<{ conference_id: string }>();
+
+	return new Set(
+		result.results.map(row => row.conference_id)
+	);
 }
