@@ -1,0 +1,1115 @@
+{
+	"attribution": "github.com/lixin4ever/Conference-Acceptance-Rate",
+	"source_url": "https://raw.githubusercontent.com/lixin4ever/Conference-Acceptance-Rate/master/README.md",
+	"generated_at": "2026-09-05T21:00:12.849Z",
+	"venues": {
+		"ACL": {
+			"2014": {
+				"rate": 26.2,
+				"accepted": 146,
+				"submitted": 572
+			},
+			"2015": {
+				"rate": 25,
+				"accepted": 173,
+				"submitted": 692
+			},
+			"2016": {
+				"rate": 28,
+				"accepted": 231,
+				"submitted": 825
+			},
+			"2017": {
+				"rate": 25,
+				"accepted": 195,
+				"submitted": 751
+			},
+			"2018": {
+				"rate": 25.3,
+				"accepted": 258,
+				"submitted": 1018
+			},
+			"2019": {
+				"rate": 25.7,
+				"accepted": 447,
+				"submitted": 1737
+			},
+			"2020": {
+				"rate": 25.4,
+				"accepted": 571,
+				"submitted": 2244
+			},
+			"2021": {
+				"rate": 24.5,
+				"accepted": 571,
+				"submitted": 2327
+			},
+			"2023": {
+				"rate": 23.5,
+				"accepted": 910,
+				"submitted": 3872
+			}
+		},
+		"EMNLP": {
+			"2014": {
+				"rate": 30.4,
+				"accepted": 155,
+				"submitted": 510
+			},
+			"2015": {
+				"rate": 26.2,
+				"accepted": 157,
+				"submitted": 600
+			},
+			"2016": {
+				"rate": 25.8,
+				"accepted": 177,
+				"submitted": 687
+			},
+			"2017": {
+				"rate": 25.8,
+				"accepted": 216,
+				"submitted": 836
+			},
+			"2018": {
+				"rate": 25.5,
+				"accepted": 351,
+				"submitted": 1376
+			},
+			"2019": {
+				"rate": 25.6,
+				"accepted": 465,
+				"submitted": 1813
+			},
+			"2020": {
+				"rate": 24.5,
+				"accepted": 602,
+				"submitted": 2455
+			},
+			"2021": {
+				"rate": 25.6,
+				"accepted": 650,
+				"submitted": 2540
+			},
+			"2022": {
+				"rate": 22.1,
+				"accepted": 715,
+				"submitted": 3242
+			},
+			"2023": {
+				"rate": 23.3,
+				"accepted": 901,
+				"submitted": 3868
+			}
+		},
+		"NAACL": {
+			"2013": {
+				"rate": 30,
+				"accepted": 88,
+				"submitted": 293
+			},
+			"2015": {
+				"rate": 29.1,
+				"accepted": 117,
+				"submitted": 402
+			},
+			"2016": {
+				"rate": 25.3,
+				"accepted": 100,
+				"submitted": 396
+			},
+			"2018": {
+				"rate": 32,
+				"accepted": 207,
+				"submitted": 647
+			},
+			"2019": {
+				"rate": 26.3,
+				"accepted": 281,
+				"submitted": 1067
+			},
+			"2021": {
+				"rate": 29.2,
+				"accepted": 366,
+				"submitted": 1254
+			}
+		},
+		"COLING": {
+			"2012": {
+				"rate": 27,
+				"accepted": null,
+				"submitted": null
+			},
+			"2014": {
+				"rate": 30.8,
+				"accepted": 217,
+				"submitted": 705
+			},
+			"2016": {
+				"rate": 32.4,
+				"accepted": 337,
+				"submitted": 1039
+			},
+			"2018": {
+				"rate": 37.4,
+				"accepted": 332,
+				"submitted": 888
+			},
+			"2020": {
+				"rate": 33.4,
+				"accepted": 622,
+				"submitted": 1862
+			},
+			"2022": {
+				"rate": 33.4,
+				"accepted": 522,
+				"submitted": 1563
+			}
+		},
+		"CVPR": {
+			"2014": {
+				"rate": 29.9,
+				"accepted": 540,
+				"submitted": 1807
+			},
+			"2015": {
+				"rate": 28.3,
+				"accepted": 602,
+				"submitted": 2123
+			},
+			"2016": {
+				"rate": 29.9,
+				"accepted": 643,
+				"submitted": 2145
+			},
+			"2017": {
+				"rate": 29.9,
+				"accepted": 783,
+				"submitted": 2620
+			},
+			"2018": {
+				"rate": 29.6,
+				"accepted": 979,
+				"submitted": 3303
+			},
+			"2019": {
+				"rate": 25,
+				"accepted": 1294,
+				"submitted": 5160
+			},
+			"2020": {
+				"rate": 22.1,
+				"accepted": 1470,
+				"submitted": 6656
+			},
+			"2021": {
+				"rate": 23.7,
+				"accepted": 1661,
+				"submitted": 7015
+			},
+			"2022": {
+				"rate": 25.3,
+				"accepted": 2067,
+				"submitted": 8161
+			},
+			"2023": {
+				"rate": 25.8,
+				"accepted": 2360,
+				"submitted": 9155
+			},
+			"2024": {
+				"rate": 23.6,
+				"accepted": 2719,
+				"submitted": 11532
+			},
+			"2025": {
+				"rate": 22.1,
+				"accepted": 2872,
+				"submitted": 13008
+			}
+		},
+		"ICCV": {
+			"2013": {
+				"rate": 27.9,
+				"accepted": 454,
+				"submitted": 1629
+			},
+			"2015": {
+				"rate": 30.9,
+				"accepted": 525,
+				"submitted": 1698
+			},
+			"2017": {
+				"rate": 29,
+				"accepted": 621,
+				"submitted": 2143
+			},
+			"2019": {
+				"rate": 25,
+				"accepted": 1077,
+				"submitted": 4304
+			}
+		},
+		"ECCV": {
+			"2014": {
+				"rate": 27.9,
+				"accepted": 363,
+				"submitted": 1444
+			},
+			"2016": {
+				"rate": 26.6,
+				"accepted": 415,
+				"submitted": 1561
+			},
+			"2018": {
+				"rate": 31.8,
+				"accepted": 776,
+				"submitted": 2439
+			},
+			"2020": {
+				"rate": 27.1,
+				"accepted": 1361,
+				"submitted": 5025
+			}
+		},
+		"ICML": {
+			"2014": {
+				"rate": 15,
+				"accepted": null,
+				"submitted": null
+			},
+			"2015": {
+				"rate": 26,
+				"accepted": 270,
+				"submitted": 1037
+			},
+			"2016": {
+				"rate": 24,
+				"accepted": 322,
+				"submitted": null
+			},
+			"2017": {
+				"rate": 25.9,
+				"accepted": 434,
+				"submitted": 1676
+			},
+			"2018": {
+				"rate": 25.1,
+				"accepted": 621,
+				"submitted": 2473
+			},
+			"2019": {
+				"rate": 22.6,
+				"accepted": 773,
+				"submitted": 3424
+			},
+			"2020": {
+				"rate": 21.8,
+				"accepted": 1088,
+				"submitted": 4990
+			},
+			"2021": {
+				"rate": 21.5,
+				"accepted": 1184,
+				"submitted": 5513
+			},
+			"2022": {
+				"rate": 21.9,
+				"accepted": 1235,
+				"submitted": 5630
+			},
+			"2023": {
+				"rate": 27.9,
+				"accepted": 1827,
+				"submitted": 6538
+			},
+			"2024": {
+				"rate": 27.5,
+				"accepted": 2610,
+				"submitted": 9473
+			}
+		},
+		"NEURIPS": {
+			"2014": {
+				"rate": 24.7,
+				"accepted": 414,
+				"submitted": 1678
+			},
+			"2015": {
+				"rate": 21.9,
+				"accepted": 403,
+				"submitted": 1838
+			},
+			"2016": {
+				"rate": 23.6,
+				"accepted": 569,
+				"submitted": 2403
+			},
+			"2017": {
+				"rate": 20.9,
+				"accepted": 678,
+				"submitted": 3240
+			},
+			"2018": {
+				"rate": 20.8,
+				"accepted": 1011,
+				"submitted": 4856
+			},
+			"2019": {
+				"rate": 21.1,
+				"accepted": 1428,
+				"submitted": 6743
+			},
+			"2020": {
+				"rate": 20.1,
+				"accepted": 1900,
+				"submitted": 9454
+			},
+			"2021": {
+				"rate": 25.7,
+				"accepted": 2344,
+				"submitted": 9122
+			},
+			"2022": {
+				"rate": 25.6,
+				"accepted": null,
+				"submitted": null
+			},
+			"2023": {
+				"rate": 26.1,
+				"accepted": 3218,
+				"submitted": 12343
+			},
+			"2024": {
+				"rate": 25.8,
+				"accepted": 4037,
+				"submitted": 15671
+			},
+			"2025": {
+				"rate": 24.5,
+				"accepted": 5290,
+				"submitted": 21575
+			}
+		},
+		"ICLR": {
+			"2017": {
+				"rate": 39.1,
+				"accepted": 198,
+				"submitted": 507
+			},
+			"2018": {
+				"rate": 32,
+				"accepted": 314,
+				"submitted": 981
+			},
+			"2019": {
+				"rate": 31.4,
+				"accepted": 500,
+				"submitted": 1591
+			},
+			"2020": {
+				"rate": 26.5,
+				"accepted": 687,
+				"submitted": 2594
+			},
+			"2021": {
+				"rate": 28.7,
+				"accepted": 860,
+				"submitted": 2997
+			},
+			"2022": {
+				"rate": 32.9,
+				"accepted": 1095,
+				"submitted": 3328
+			},
+			"2023": {
+				"rate": 32,
+				"accepted": 1574,
+				"submitted": 4956
+			},
+			"2024": {
+				"rate": 30.81,
+				"accepted": 2250,
+				"submitted": 7304
+			},
+			"2025": {
+				"rate": 31.75,
+				"accepted": 3706,
+				"submitted": 11672
+			}
+		},
+		"COLT": {
+			"2014": {
+				"rate": 32.1,
+				"accepted": 45,
+				"submitted": 140
+			},
+			"2015": {
+				"rate": 34.8,
+				"accepted": 62,
+				"submitted": 178
+			},
+			"2016": {
+				"rate": 26.1,
+				"accepted": 53,
+				"submitted": 203
+			},
+			"2017": {
+				"rate": 32.5,
+				"accepted": 74,
+				"submitted": 228
+			},
+			"2018": {
+				"rate": 27.2,
+				"accepted": 91,
+				"submitted": 335
+			},
+			"2019": {
+				"rate": 30,
+				"accepted": 118,
+				"submitted": 393
+			},
+			"2020": {
+				"rate": 30.9,
+				"accepted": 120,
+				"submitted": 388
+			}
+		},
+		"UAI": {
+			"2014": {
+				"rate": 32,
+				"accepted": 94,
+				"submitted": 292
+			},
+			"2015": {
+				"rate": 34,
+				"accepted": 99,
+				"submitted": 291
+			},
+			"2016": {
+				"rate": 31,
+				"accepted": 85,
+				"submitted": 275
+			},
+			"2017": {
+				"rate": 31,
+				"accepted": 87,
+				"submitted": 282
+			},
+			"2018": {
+				"rate": 30.8,
+				"accepted": 104,
+				"submitted": 337
+			},
+			"2019": {
+				"rate": 26,
+				"accepted": 118,
+				"submitted": 450
+			},
+			"2020": {
+				"rate": 27.5,
+				"accepted": 142,
+				"submitted": 515
+			},
+			"2021": {
+				"rate": 26.3,
+				"accepted": 205,
+				"submitted": 777
+			},
+			"2022": {
+				"rate": 32.3,
+				"accepted": 230,
+				"submitted": 712
+			},
+			"2023": {
+				"rate": 31.2,
+				"accepted": 243,
+				"submitted": 778
+			},
+			"2024": {
+				"rate": 26.9,
+				"accepted": 200,
+				"submitted": 744
+			},
+			"2025": {
+				"rate": 30.7,
+				"accepted": 230,
+				"submitted": 750
+			}
+		},
+		"AISTATS": {
+			"2014": {
+				"rate": 35.8,
+				"accepted": 120,
+				"submitted": 335
+			},
+			"2015": {
+				"rate": 28.7,
+				"accepted": 127,
+				"submitted": 442
+			},
+			"2016": {
+				"rate": 30.7,
+				"accepted": 165,
+				"submitted": 537
+			},
+			"2017": {
+				"rate": 31.7,
+				"accepted": 168,
+				"submitted": 530
+			},
+			"2018": {
+				"rate": 33.2,
+				"accepted": 214,
+				"submitted": 645
+			},
+			"2019": {
+				"rate": 32.4,
+				"accepted": 360,
+				"submitted": 1111
+			},
+			"2021": {
+				"rate": 29.8,
+				"accepted": 455,
+				"submitted": 1527
+			},
+			"2022": {
+				"rate": 29.2,
+				"accepted": 493,
+				"submitted": 1685
+			},
+			"2023": {
+				"rate": 29.4,
+				"accepted": 496,
+				"submitted": 1686
+			},
+			"2024": {
+				"rate": 27.6,
+				"accepted": 546,
+				"submitted": 1980
+			},
+			"2025": {
+				"rate": 31.3,
+				"accepted": 583,
+				"submitted": 1861
+			}
+		},
+		"AAAI": {
+			"2014": {
+				"rate": 28,
+				"accepted": 398,
+				"submitted": 1406
+			},
+			"2015": {
+				"rate": 26.7,
+				"accepted": 531,
+				"submitted": 1991
+			},
+			"2016": {
+				"rate": 25.8,
+				"accepted": 549,
+				"submitted": 2132
+			},
+			"2017": {
+				"rate": 24.6,
+				"accepted": 638,
+				"submitted": 2590
+			},
+			"2018": {
+				"rate": 24.6,
+				"accepted": 933,
+				"submitted": 3800
+			},
+			"2019": {
+				"rate": 16.2,
+				"accepted": 1150,
+				"submitted": 7095
+			},
+			"2020": {
+				"rate": 20.6,
+				"accepted": 1591,
+				"submitted": 7737
+			},
+			"2021": {
+				"rate": 21.4,
+				"accepted": 1692,
+				"submitted": 7911
+			},
+			"2022": {
+				"rate": 15,
+				"accepted": 1349,
+				"submitted": 9020
+			},
+			"2023": {
+				"rate": 19.6,
+				"accepted": 1721,
+				"submitted": 8777
+			},
+			"2024": {
+				"rate": 23.75,
+				"accepted": 2342,
+				"submitted": 9862
+			},
+			"2025": {
+				"rate": 23.4,
+				"accepted": 3032,
+				"submitted": 12957
+			}
+		},
+		"IJCAI": {
+			"2013": {
+				"rate": 28,
+				"accepted": 413,
+				"submitted": 1473
+			},
+			"2015": {
+				"rate": 28.6,
+				"accepted": 572,
+				"submitted": 1996
+			},
+			"2016": {
+				"rate": 24,
+				"accepted": 551,
+				"submitted": 2294
+			},
+			"2017": {
+				"rate": 26,
+				"accepted": 660,
+				"submitted": 2540
+			},
+			"2018": {
+				"rate": 20.5,
+				"accepted": 710,
+				"submitted": 3470
+			},
+			"2019": {
+				"rate": 17.9,
+				"accepted": 850,
+				"submitted": 4752
+			},
+			"2020": {
+				"rate": 12.6,
+				"accepted": 592,
+				"submitted": 4717
+			},
+			"2021": {
+				"rate": 13.9,
+				"accepted": 587,
+				"submitted": 4204
+			},
+			"2022": {
+				"rate": 14.9,
+				"accepted": 679,
+				"submitted": 4535
+			},
+			"2023": {
+				"rate": 14.1,
+				"accepted": 643,
+				"submitted": 4566
+			}
+		},
+		"KDD": {
+			"2014": {
+				"rate": 14.6,
+				"accepted": 151,
+				"submitted": 1036
+			},
+			"2015": {
+				"rate": 19.5,
+				"accepted": 160,
+				"submitted": 819
+			},
+			"2016": {
+				"rate": 13.7,
+				"accepted": 142,
+				"submitted": 1115
+			},
+			"2017": {
+				"rate": 17.4,
+				"accepted": 130,
+				"submitted": 748
+			},
+			"2018": {
+				"rate": 18.4,
+				"accepted": 181,
+				"submitted": 983
+			},
+			"2019": {
+				"rate": 14.2,
+				"accepted": 170,
+				"submitted": 1200
+			},
+			"2020": {
+				"rate": 16.9,
+				"accepted": 216,
+				"submitted": 1279
+			},
+			"2022": {
+				"rate": 15,
+				"accepted": 254,
+				"submitted": 1695
+			},
+			"2023": {
+				"rate": 22.1,
+				"accepted": 313,
+				"submitted": 1416
+			}
+		},
+		"SIGIR": {
+			"2014": {
+				"rate": 21,
+				"accepted": 82,
+				"submitted": 387
+			},
+			"2015": {
+				"rate": 20,
+				"accepted": 70,
+				"submitted": 351
+			},
+			"2016": {
+				"rate": 18,
+				"accepted": 62,
+				"submitted": 341
+			},
+			"2017": {
+				"rate": 22,
+				"accepted": 78,
+				"submitted": 362
+			},
+			"2018": {
+				"rate": 21,
+				"accepted": 86,
+				"submitted": 409
+			},
+			"2019": {
+				"rate": 19.7,
+				"accepted": 84,
+				"submitted": 426
+			},
+			"2020": {
+				"rate": 26.5,
+				"accepted": 147,
+				"submitted": 555
+			},
+			"2021": {
+				"rate": 21,
+				"accepted": 151,
+				"submitted": 720
+			},
+			"2022": {
+				"rate": 20.3,
+				"accepted": 161,
+				"submitted": 794
+			}
+		},
+		"WWW": {
+			"2014": {
+				"rate": 13,
+				"accepted": 84,
+				"submitted": 645
+			},
+			"2015": {
+				"rate": 14,
+				"accepted": 131,
+				"submitted": 929
+			},
+			"2016": {
+				"rate": 16,
+				"accepted": 115,
+				"submitted": 727
+			},
+			"2017": {
+				"rate": 17,
+				"accepted": 164,
+				"submitted": 966
+			},
+			"2018": {
+				"rate": 15,
+				"accepted": 171,
+				"submitted": 1140
+			},
+			"2019": {
+				"rate": 18,
+				"accepted": 225,
+				"submitted": 1247
+			},
+			"2020": {
+				"rate": 19.2,
+				"accepted": 217,
+				"submitted": 1129
+			},
+			"2021": {
+				"rate": 20.6,
+				"accepted": 357,
+				"submitted": 1736
+			},
+			"2022": {
+				"rate": 17.7,
+				"accepted": 323,
+				"submitted": 1822
+			},
+			"2023": {
+				"rate": 19.2,
+				"accepted": 365,
+				"submitted": 1900
+			}
+		},
+		"WSDM": {
+			"2014": {
+				"rate": 18,
+				"accepted": 64,
+				"submitted": 355
+			},
+			"2015": {
+				"rate": 16.4,
+				"accepted": 39,
+				"submitted": 238
+			},
+			"2016": {
+				"rate": 18.2,
+				"accepted": 67,
+				"submitted": 368
+			},
+			"2017": {
+				"rate": 15.8,
+				"accepted": 80,
+				"submitted": 505
+			},
+			"2018": {
+				"rate": 16.1,
+				"accepted": 84,
+				"submitted": 514
+			},
+			"2019": {
+				"rate": 16.4,
+				"accepted": 84,
+				"submitted": 511
+			},
+			"2020": {
+				"rate": 14.8,
+				"accepted": 91,
+				"submitted": 615
+			},
+			"2021": {
+				"rate": 18.6,
+				"accepted": 112,
+				"submitted": 603
+			},
+			"2022": {
+				"rate": 15.8,
+				"accepted": 80,
+				"submitted": 505
+			},
+			"2023": {
+				"rate": 17.8,
+				"accepted": 123,
+				"submitted": 690
+			}
+		},
+		"CIKM": {
+			"2014": {
+				"rate": 21,
+				"accepted": 175,
+				"submitted": 838
+			},
+			"2015": {
+				"rate": 26,
+				"accepted": 165,
+				"submitted": 646
+			},
+			"2016": {
+				"rate": 23,
+				"accepted": 160,
+				"submitted": 701
+			},
+			"2017": {
+				"rate": 20,
+				"accepted": 171,
+				"submitted": 855
+			},
+			"2018": {
+				"rate": 17,
+				"accepted": 147,
+				"submitted": 862
+			},
+			"2019": {
+				"rate": 19.4,
+				"accepted": 200,
+				"submitted": 1030
+			},
+			"2020": {
+				"rate": 21,
+				"accepted": 193,
+				"submitted": 920
+			},
+			"2021": {
+				"rate": 21.7,
+				"accepted": 271,
+				"submitted": 1251
+			}
+		},
+		"ICDM": {
+			"2014": {
+				"rate": 9.8,
+				"accepted": 71,
+				"submitted": 727
+			},
+			"2015": {
+				"rate": 8.4,
+				"accepted": 68,
+				"submitted": 807
+			},
+			"2016": {
+				"rate": 8.6,
+				"accepted": 78,
+				"submitted": 904
+			},
+			"2017": {
+				"rate": 9.3,
+				"accepted": 72,
+				"submitted": 778
+			},
+			"2018": {
+				"rate": 8.9,
+				"accepted": 84,
+				"submitted": 948
+			},
+			"2019": {
+				"rate": 9.1,
+				"accepted": 95,
+				"submitted": 1046
+			},
+			"2020": {
+				"rate": 9.8,
+				"accepted": 91,
+				"submitted": 930
+			},
+			"2021": {
+				"rate": 9.9,
+				"accepted": 98,
+				"submitted": 990
+			}
+		},
+		"RECSYS": {
+			"2015": {
+				"rate": 23,
+				"accepted": 35,
+				"submitted": 152
+			},
+			"2016": {
+				"rate": 18.2,
+				"accepted": 29,
+				"submitted": 159
+			},
+			"2017": {
+				"rate": 20.8,
+				"accepted": 26,
+				"submitted": 125
+			},
+			"2018": {
+				"rate": 17.7,
+				"accepted": 32,
+				"submitted": 181
+			},
+			"2019": {
+				"rate": 19,
+				"accepted": 36,
+				"submitted": 189
+			},
+			"2020": {
+				"rate": 17.9,
+				"accepted": 39,
+				"submitted": 218
+			}
+		},
+		"INTERSPEECH": {
+			"2015": {
+				"rate": 51,
+				"accepted": 743,
+				"submitted": 1458
+			},
+			"2016": {
+				"rate": 50.5,
+				"accepted": 779,
+				"submitted": 1541
+			},
+			"2017": {
+				"rate": 52,
+				"accepted": 799,
+				"submitted": 1582
+			},
+			"2018": {
+				"rate": 54.3,
+				"accepted": 749,
+				"submitted": 1320
+			},
+			"2019": {
+				"rate": 49.3,
+				"accepted": 914,
+				"submitted": 1855
+			},
+			"2020": {
+				"rate": 47,
+				"accepted": null,
+				"submitted": null
+			},
+			"2021": {
+				"rate": 48.4,
+				"accepted": 963,
+				"submitted": 1990
+			}
+		},
+		"ICASSP": {
+			"2014": {
+				"rate": 48,
+				"accepted": 1709,
+				"submitted": 3500
+			},
+			"2015": {
+				"rate": 52,
+				"accepted": 1207,
+				"submitted": 2322
+			},
+			"2016": {
+				"rate": 47,
+				"accepted": 1265,
+				"submitted": 2682
+			},
+			"2017": {
+				"rate": 52,
+				"accepted": 1220,
+				"submitted": 2518
+			},
+			"2018": {
+				"rate": 49.7,
+				"accepted": 1406,
+				"submitted": 2829
+			},
+			"2019": {
+				"rate": 46.5,
+				"accepted": 1774,
+				"submitted": 3815
+			},
+			"2021": {
+				"rate": 48,
+				"accepted": 1734,
+				"submitted": 3610
+			},
+			"2022": {
+				"rate": 45,
+				"accepted": 1785,
+				"submitted": 3967
+			},
+			"2023": {
+				"rate": 45.1,
+				"accepted": 2765,
+				"submitted": 6127
+			},
+			"2024": {
+				"rate": 45,
+				"accepted": 2812,
+				"submitted": 5796
+			}
+		}
+	}
+}
