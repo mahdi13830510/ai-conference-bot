@@ -88,6 +88,20 @@ describe("mini app", () => {
 			.toContain("telegram-web-app.js");
 	});
 
+	it("calls its API by absolute path", async () => {
+
+		/*
+		 * The shell is served at "/app" with no trailing slash, so
+		 * a relative "api/..." would resolve to "/api/..." and 404
+		 * for every request the app makes.
+		 */
+		const html =
+			await (await call("http://example.com/app")).text();
+
+		expect(html).toContain('fetch("/app/api/"');
+		expect(html).not.toMatch(/fetch\(\s*"api\//);
+	});
+
 	it("rejects an unsigned API call", async () => {
 
 		const response =
