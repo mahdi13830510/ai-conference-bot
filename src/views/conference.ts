@@ -1,5 +1,7 @@
 import {
 	Env,
+	User,
+	ReminderKind,
 } from "../types";
 
 import {
@@ -10,7 +12,12 @@ import {
 import {
 	getConference,
 	isSaved,
+	isMuted,
 	createReminder,
+	getUser,
+	getAcceptanceRates,
+	getVenueHistory,
+	getCountryInfo,
 } from "../database";
 
 import {
@@ -23,23 +30,26 @@ import {
 	formatDate,
 } from "../format";
 
-/**
- * Conference detail view and the reminder flow that
- * hangs off it.
- */
+import {
+	ESCALATING_OFFSETS,
+	REMINDER_KIND_LABELS,
+	EFFECT_CONFETTI,
+} from "../config";
 
+/**
+ * Conference detail view, enriched with the ranking, historical
+ * acceptance rates, past editions and travel pointers.
+ */
 export async function showConference(
 	env: Env,
 	chatId: number,
 	conferenceId: string,
-	messageId?: number
-) {
+	messageId?: number,
+	user?: User | null
+): Promise<void> {
 
 	const conference =
-		await getConference(
-			env,
-			conferenceId
-		);
+		await getConference(env, conferenceId);
 
 	if (!conference) {
 
@@ -52,22 +62,97 @@ export async function showConference(
 		return;
 	}
 
-	const saved =
-		await isSaved(
-			env,
-			String(chatId),
-			conferenceId
-		);
+	const userId =
+		String(chatId);
+
+	const viewer =
+		user ?? await getUser(env, userId);
+
+	const [saved, muted, rates, history, country] =
+		await Promise.all([
+			isSaved(env, userId, conferenceId),
+			isMuted(env, userId, conferenceId),
+			getAcceptanceRates(env, conference.title),
+			getVenueHistory(env, conference.title, conference.year),
+			conference.country
+				? getCountryInfo(env, conference.country)
+				: Promise.resolve(null),
+		]);
 
 	const text =
 		conferenceText(
-			conference
+			conference,
+			{
+				timezone: viewer?.timezone ?? "UTC",
+				rates,
+				history,
+				country,
+			}
 		);
 
 	const markup =
-		conferenceDetailKeyboard(
-			conference,
-			saved
+		conferenceDetailKeyboard(conference, saved, muted);
+
+	/*
+	 * The website link is worth a preview; everything else is
+	 * noise, so previews stay off unless there is a link.
+	 */
+	const options =
+		conference.link
+			? {
+				linkPreview: {
+					url: conference.link,
+					prefer_small_media: true,
+				},
+			}
+			: {};
+
+	if (messageId) {
+
+		await editMessageText(
+			env,
+			chatId,
+			messageId,
+			text,
+			markup,
+			options
+		);
+
+		return;
+	}
+
+	await sendMessage(env, chatId, text, markup, options);
+}
+
+/* =========================================================
+	 REMINDERS
+	 ========================================================= */
+
+export async function showReminderMenu(
+	env: Env,
+	chatId: number,
+	conferenceId: string,
+	messageId?: number
+): Promise<void> {
+
+	const conference =
+		await getConference(env, conferenceId);
+
+	if (!conference) {
+		return;
+	}
+
+	const text =
+		`🔔 <b>Reminders for ${conference.title} ` +
+		`${conference.year}</b>\n\n` +
+		`Pick a single offset, or turn on the escalating ` +
+		`sequence to be nudged at 30, 7, 3 and 1 days.`;
+
+	const markup =
+		reminderMenu(
+			conferenceId,
+			!!conference.abstract_deadline_utc,
+			!!conference.start
 		);
 
 	if (messageId) {
@@ -80,126 +165,160 @@ export async function showConference(
 			markup
 		);
 
-	} else {
-
-		await sendMessage(
-			env,
-			chatId,
-			text,
-			markup
-		);
-	}
-}
-
-/* =========================================================
-	 REMINDER MENU
-	 ========================================================= */
-
-export async function showReminderMenu(
-	env: Env,
-	chatId: number,
-	conferenceId: string
-) {
-
-	const conference =
-		await getConference(
-			env,
-			conferenceId
-		);
-
-	if (!conference) {
 		return;
 	}
 
-	await sendMessage(
-		env,
-		chatId,
-		`🔔 Reminders for ${conference.title} ${conference.year}
-
-Choose when you want to be reminded.`,
-		reminderMenu(
-			conferenceId
-		)
-	);
+	await sendMessage(env, chatId, text, markup);
 }
 
-/* =========================================================
-	 REMINDERS
-	 ========================================================= */
+/**
+ * The date a reminder counts back from, per kind.
+ */
+function baseDate(
+	conference: {
+		deadline_utc: string | null;
+		abstract_deadline_utc: string | null;
+		start: string | null;
+	},
+	kind: ReminderKind
+): string | null {
+
+	switch (kind) {
+
+		case "abstract":
+			return conference.abstract_deadline_utc;
+
+		case "event":
+			return conference.start
+				? `${conference.start}T09:00:00Z`
+				: null;
+
+		default:
+			return conference.deadline_utc;
+	}
+}
 
 export async function createConferenceReminder(
 	env: Env,
 	chatId: number,
 	conferenceId: string,
-	daysBefore: number
-) {
+	kind: ReminderKind,
+	daysBefore: number | "escalate"
+): Promise<void> {
 
 	const conference =
-		await getConference(
-			env,
-			conferenceId
-		);
+		await getConference(env, conferenceId);
 
-	if (
-		!conference ||
-		!conference.deadline_utc
-	) {
+	if (!conference) {
+
 		await sendMessage(
 			env,
 			chatId,
-			"❌ This conference does not have a usable deadline."
+			"❌ Conference not found."
 		);
 
 		return;
 	}
 
-	const deadline =
-		new Date(
-			conference.deadline_utc
-		);
+	const base =
+		baseDate(conference, kind);
 
-	const remindAt =
-		new Date(
-			deadline.getTime() -
-			daysBefore *
-			24 *
-			60 *
-			60 *
-			1000
-		);
-
-	if (
-		remindAt.getTime() <=
-		Date.now()
-	) {
+	if (!base) {
 
 		await sendMessage(
 			env,
 			chatId,
-			"⚠️ That reminder time has already passed."
+			`❌ This conference has no ` +
+			`${REMINDER_KIND_LABELS[kind] ?? kind} to count back from.`
 		);
 
 		return;
 	}
 
-	await createReminder(
-		env,
-		String(chatId),
-		conferenceId,
-		daysBefore,
-		remindAt.toISOString()
-	);
+	const baseTime =
+		new Date(base).getTime();
+
+	const offsets =
+		daysBefore === "escalate"
+			? ESCALATING_OFFSETS
+			: [daysBefore];
+
+	const created: number[] = [];
+
+	const skipped: number[] = [];
+
+	for (const days of offsets) {
+
+		const remindAt =
+			new Date(baseTime - days * 86_400_000);
+
+		if (remindAt.getTime() <= Date.now()) {
+			skipped.push(days);
+			continue;
+		}
+
+		await createReminder(
+			env,
+			String(chatId),
+			conferenceId,
+			days,
+			remindAt.toISOString(),
+			kind
+		);
+
+		created.push(days);
+	}
+
+	if (!created.length) {
+
+		await sendMessage(
+			env,
+			chatId,
+			`⚠️ Every one of those reminder times has already ` +
+			`passed — the deadline is ${formatDate(base)}.`
+		);
+
+		return;
+	}
+
+	const viewer =
+		await getUser(env, String(chatId));
+
+	let text =
+		`✅ <b>Reminder${created.length > 1 ? "s" : ""} set</b>\n\n` +
+		`${conference.title} ${conference.year}\n` +
+		`${REMINDER_KIND_LABELS[kind] ?? kind}\n\n` +
+		`🔔 ${created.map(days => `${days}d`).join(" · ")} before\n` +
+		`📅 ${formatDate(base, viewer?.timezone ?? "UTC", true)}`;
+
+	if (skipped.length) {
+
+		text +=
+			`\n\n<i>Skipped ${skipped
+				.map(days => `${days}d`)
+				.join(", ")} — already in the past.</i>`;
+	}
 
 	await sendMessage(
 		env,
 		chatId,
-		`✅ Reminder set.
-
-${conference.title} ${conference.year}
-
-🔔 ${daysBefore} days before the deadline
-📅 ${formatDate(
-			conference.deadline_utc
-		)}`
+		text,
+		{
+			inline_keyboard: [
+				[
+					{
+						text: "◀ Back to conference",
+						callback_data: `conf:${conferenceId}`,
+					},
+				],
+				[
+					{
+						text: "🔔 My reminders",
+						callback_data: "reminders",
+					},
+				],
+			],
+		},
+		{ messageEffectId: EFFECT_CONFETTI }
 	);
 }
