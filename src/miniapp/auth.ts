@@ -73,23 +73,61 @@ export interface MiniAppUser {
 	language_code?: string;
 }
 
-export async function verifyInitData(
+export type VerifyReason =
+	| "ok"
+	| "empty"
+	| "no_hash"
+	| "bad_hash"
+	| "no_auth_date"
+	| "stale"
+	| "no_user";
+
+export interface VerifyResult {
+	user: MiniAppUser | null;
+	reason: VerifyReason;
+
+	/**
+	 * Field names only, never values: enough to diagnose a
+	 * client that sends something unexpected, without putting
+	 * the hash or the user's data in a log.
+	 */
+	keys: string[];
+
+	ageSeconds: number | null;
+}
+
+/**
+ * Verification with a machine-readable reason, so a failure can
+ * be diagnosed without guessing.
+ */
+export async function verifyInitDataDetailed(
 	env: Env,
 	initData: string
-): Promise<MiniAppUser | null> {
+): Promise<VerifyResult> {
 
 	if (!initData) {
-		return null;
+		return { user: null, reason: "empty", keys: [], ageSeconds: null };
 	}
 
 	const params =
 		new URLSearchParams(initData);
 
+	const keys =
+		[...params.keys()].sort();
+
 	const hash =
 		params.get("hash");
 
+	const authDate =
+		Number(params.get("auth_date") ?? 0);
+
+	const ageSeconds =
+		authDate
+			? Math.round(Date.now() / 1000 - authDate)
+			: null;
+
 	if (!hash) {
-		return null;
+		return { user: null, reason: "no_hash", keys, ageSeconds };
 	}
 
 	/*
@@ -116,21 +154,19 @@ export async function verifyInitData(
 		toHex(await hmac(secretKey, dataCheckString));
 
 	if (!timingSafeEqual(expected, hash)) {
-		return null;
+		return { user: null, reason: "bad_hash", keys, ageSeconds };
 	}
 
 	/*
 	 * Reject stale payloads so a leaked initData string cannot
 	 * be replayed indefinitely.
 	 */
-	const authDate =
-		Number(params.get("auth_date") ?? 0);
+	if (!authDate) {
+		return { user: null, reason: "no_auth_date", keys, ageSeconds };
+	}
 
-	if (
-		!authDate ||
-		Date.now() / 1000 - authDate > MAX_AGE_SECONDS
-	) {
-		return null;
+	if (Date.now() / 1000 - authDate > MAX_AGE_SECONDS) {
+		return { user: null, reason: "stale", keys, ageSeconds };
 	}
 
 	try {
@@ -138,11 +174,21 @@ export async function verifyInitData(
 		const user =
 			JSON.parse(params.get("user") ?? "null");
 
-		return user && typeof user.id === "number"
-			? user as MiniAppUser
-			: null;
+		if (user && typeof user.id === "number") {
+			return { user: user as MiniAppUser, reason: "ok", keys, ageSeconds };
+		}
 
 	} catch {
-		return null;
+		/* falls through to no_user */
 	}
+
+	return { user: null, reason: "no_user", keys, ageSeconds };
+}
+
+export async function verifyInitData(
+	env: Env,
+	initData: string
+): Promise<MiniAppUser | null> {
+
+	return (await verifyInitDataDetailed(env, initData)).user;
 }

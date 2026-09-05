@@ -4,7 +4,7 @@ import {
 } from "../types";
 
 import {
-	verifyInitData,
+	verifyInitDataDetailed,
 } from "./auth";
 
 import {
@@ -106,12 +106,32 @@ export async function handleMiniAppApi(
 		return json({ error: "Invalid JSON" }, 400);
 	}
 
-	const user =
-		await verifyInitData(env, body.initData ?? "");
+	const verified =
+		await verifyInitDataDetailed(env, body.initData ?? "");
 
-	if (!user) {
-		return json({ error: "Unauthorized" }, 401);
+	if (!verified.user) {
+
+		/*
+		 * Field names and the payload age only — never the hash
+		 * or the user object.
+		 */
+		console.warn(
+			JSON.stringify({
+				event: "miniapp_auth_failed",
+				reason: verified.reason,
+				keys: verified.keys,
+				age_seconds: verified.ageSeconds,
+			})
+		);
+
+		return json(
+			{ error: "Unauthorized", reason: verified.reason },
+			401
+		);
 	}
+
+	const user =
+		verified.user;
 
 	const telegramId =
 		String(user.id);
