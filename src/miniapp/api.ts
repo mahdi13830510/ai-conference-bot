@@ -17,6 +17,8 @@ import {
 	listSaved,
 	getPersonalFeed,
 	isSaved,
+	getSavedIds,
+	createReminder,
 	saveConference,
 	unsaveConference,
 	getAcceptanceRates,
@@ -164,9 +166,84 @@ export async function handleMiniAppApi(
 		case "topic":
 			return topicEndpoint(env, telegramId, body);
 
+		case "remind":
+			return remindEndpoint(env, telegramId, body);
+
 		default:
 			return json({ error: "Not found" }, 404);
 	}
+}
+
+/**
+ * Builds the filter clauses shared by the browse and search
+ * paths, so a chip means the same thing either way.
+ */
+function buildFilters(
+	body: Record<string, unknown>
+): { clauses: string[]; params: unknown[] } {
+
+	const clauses: string[] = [];
+
+	const params: unknown[] = [];
+
+	const topic =
+		String(body.topic ?? "").trim().toUpperCase();
+
+	if (topic) {
+		clauses.push("topics LIKE ?");
+		params.push(`%"${topic}"%`);
+	}
+
+	const rank =
+		String(body.rank ?? "").trim();
+
+	const order = ["A*", "A", "B", "C"];
+
+	if (order.includes(rank)) {
+
+		const accepted =
+			order.slice(0, order.indexOf(rank) + 1);
+
+		clauses.push(
+			`core_rank IN (${accepted.map(() => "?").join(", ")})`
+		);
+
+		params.push(...accepted);
+	}
+
+	const format =
+		String(body.format ?? "").trim();
+
+	if (["in-person", "virtual", "hybrid"].includes(format)) {
+		clauses.push("format = ?");
+		params.push(format);
+	}
+
+	return { clauses, params };
+}
+
+/**
+ * Attaches save state so the star on each card is truthful.
+ */
+async function withSaved(
+	env: Env,
+	telegramId: string,
+	rows: DbConference[]
+) {
+
+	const savedIds =
+		await getSavedIds(
+			env,
+			telegramId,
+			rows.map(row => row.id)
+		);
+
+	return rows.map(
+		row => ({
+			...project(row),
+			saved: savedIds.has(row.id),
+		})
+	);
 }
 
 async function listEndpoint(
@@ -193,6 +270,9 @@ async function listEndpoint(
 	const orderBy =
 		orderByFor(String(body.sort ?? user?.sort_preference));
 
+	const { clauses, params } =
+		buildFilters(body);
+
 	if (search) {
 
 		const result =
@@ -201,11 +281,14 @@ async function listEndpoint(
 				search,
 				page,
 				pageSize,
-				orderBy
+				orderBy,
+				clauses.length
+					? { where: clauses.join(" AND "), params }
+					: undefined
 			);
 
 		return json({
-			rows: result.rows.map(project),
+			rows: await withSaved(env, telegramId, result.rows),
 			total: result.total,
 			fuzzy: result.fuzzy,
 		});
@@ -217,7 +300,9 @@ async function listEndpoint(
 			await listSaved(env, telegramId, page, pageSize);
 
 		return json({
-			rows: result.rows.map(project),
+			rows: result.rows.map(
+				row => ({ ...project(row), saved: true })
+			),
 			total: result.total,
 		});
 	}
@@ -228,51 +313,13 @@ async function listEndpoint(
 			await getPersonalFeed(env, telegramId, page, pageSize);
 
 		return json({
-			rows: result.rows.map(project),
+			rows: await withSaved(env, telegramId, result.rows),
 			total: result.total,
 		});
 	}
 
-	const clauses: string[] = [FUTURE];
-
-	const params: unknown[] = [];
-
-	const topic =
-		String(body.topic ?? "").trim().toUpperCase();
-
-	if (topic) {
-		clauses.push("topics LIKE ?");
-		params.push(`%"${topic}"%`);
-	}
-
-	const rank =
-		String(body.rank ?? "").trim();
-
-	if (["A*", "A", "B", "C"].includes(rank)) {
-
-		const order =
-			["A*", "A", "B", "C"];
-
-		const accepted =
-			order.slice(0, order.indexOf(rank) + 1);
-
-		clauses.push(
-			`core_rank IN (${accepted.map(() => "?").join(", ")})`
-		);
-
-		params.push(...accepted);
-	}
-
-	const format =
-		String(body.format ?? "").trim();
-
-	if (["in-person", "virtual", "hybrid"].includes(format)) {
-		clauses.push("format = ?");
-		params.push(format);
-	}
-
 	const where =
-		clauses.join(" AND ");
+		[FUTURE, ...clauses].join(" AND ");
 
 	const [total, rows] =
 		await Promise.all([
@@ -284,7 +331,7 @@ async function listEndpoint(
 		]);
 
 	return json({
-		rows: rows.map(project),
+		rows: await withSaved(env, telegramId, rows),
 		total,
 	});
 }
@@ -377,4 +424,53 @@ async function topicEndpoint(
 	return json({
 		topics: await getTopics(env, telegramId),
 	});
+}
+
+/**
+ * Creates a paper-deadline reminder from inside the Mini App.
+ */
+async function remindEndpoint(
+	env: Env,
+	telegramId: string,
+	body: Record<string, unknown>
+): Promise<Response> {
+
+	const conference =
+		await getConference(env, String(body.id ?? ""));
+
+	if (!conference) {
+		return json({ error: "Not found" }, 404);
+	}
+
+	if (!conference.deadline_utc) {
+		return json({ error: "No deadline to count back from" }, 400);
+	}
+
+	const days =
+		Math.min(Math.max(Number(body.days) || 7, 1), 365);
+
+	const remindAt =
+		new Date(
+			new Date(conference.deadline_utc).getTime() -
+			days * 86_400_000
+		);
+
+	if (remindAt.getTime() <= Date.now()) {
+
+		return json(
+			{ error: "That reminder time has already passed" },
+			400
+		);
+	}
+
+	await createReminder(
+		env,
+		telegramId,
+		conference.id,
+		days,
+		remindAt.toISOString(),
+		"paper"
+	);
+
+	return json({ ok: true, days });
 }
