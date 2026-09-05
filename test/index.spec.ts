@@ -102,6 +102,28 @@ describe("mini app", () => {
 		expect(html).not.toMatch(/fetch\(\s*"api\//);
 	});
 
+	it("wires up the native Telegram back button", async () => {
+
+		/*
+		 * Without this the phone's back gesture closes the whole
+		 * app instead of the detail sheet.
+		 */
+		const html =
+			await (await call("http://example.com/app")).text();
+
+		expect(html).toContain("BackButton");
+		expect(html).toContain("closeSheet");
+	});
+
+	it("renders save state from the server, not a guess", async () => {
+
+		const html =
+			await (await call("http://example.com/app")).text();
+
+		/* The star reflects row.saved rather than the active tab. */
+		expect(html).toContain("setStar(star, !!row.saved)");
+	});
+
 	it("rejects an unsigned API call", async () => {
 
 		const response =
