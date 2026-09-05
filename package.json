@@ -11,7 +11,10 @@
     "start": "wrangler dev",
     "test": "vitest run",
     "cf-typegen": "wrangler types",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "fetch:ranks": "node scripts/fetch_core_ranks.mjs",
+    "fetch:rates": "node scripts/fetch_acceptance_rates.mjs && node scripts/generate_seed.mjs",
+    "setup": "node scripts/setup_telegram.mjs"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.0.0",
