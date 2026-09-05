@@ -3,8 +3,11 @@ import {
 	DbConference,
 } from "./types";
 
-const AI_DEADLINES_URL =
-	"https://mlciv.com/ai-deadlines/api/upcoming.json";
+import {
+	detectFormat,
+	parsePlace,
+	lookupCoreRank,
+} from "./enrich";
 
 /*
  * Convert strings like:
@@ -215,41 +218,6 @@ export function isPredicted(
 	);
 }
 
-export async function fetchConferences()
-	: Promise<Conference[]> {
-
-	const response =
-		await fetch(
-			AI_DEADLINES_URL,
-			{
-				headers: {
-					Accept:
-						"application/json",
-
-					"User-Agent":
-						"ai-conference-telegram-bot/1.0",
-				},
-			}
-		);
-
-	if (!response.ok) {
-		throw new Error(
-			`ai-deadlines returned ${response.status}`
-		);
-	}
-
-	const data =
-		await response.json();
-
-	if (!Array.isArray(data)) {
-		throw new Error(
-			"Invalid ai-deadlines response"
-		);
-	}
-
-	return data as Conference[];
-}
-
 /*
  * Only keep conferences whose paper deadline
  * is still in the future.
@@ -314,6 +282,16 @@ export function toDbConference(
 
 	const now =
 		new Date().toISOString();
+
+	const place =
+		conference.place ??
+		null;
+
+	const { city, country } =
+		parsePlace(place);
+
+	const core =
+		lookupCoreRank(conference.title);
 
 	return {
 		id: conference.id,
@@ -391,6 +369,38 @@ export function toDbConference(
 
 		pwclink:
 			conference.pwclink ??
+			null,
+
+		core_rank:
+			core?.rank ??
+			null,
+
+		core_name:
+			core?.name ??
+			null,
+
+		format:
+			detectFormat(
+				place,
+				conference.note
+			),
+
+		country,
+
+		city,
+
+		cfp_link:
+			conference.cfp_link ??
+			null,
+
+		source:
+			conference.source ??
+			"ai-deadlines",
+
+		previous_deadline_utc:
+			null,
+
+		deadline_changed_at:
 			null,
 
 		first_seen_at:
