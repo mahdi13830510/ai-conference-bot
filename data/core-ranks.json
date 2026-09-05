@@ -1,0 +1,271 @@
+{
+	"source": "CORE2023",
+	"generated_at": "2026-09-05T20:59:27.191Z",
+	"ranks": {
+		"AAAI": {
+			"rank": "A*",
+			"name": "National Conference of the American Association for Artificial Intelligence",
+			"for_code": "4602"
+		},
+		"AAMAS": {
+			"rank": "A*",
+			"name": "International Joint Conference on Autonomous Agents and Multiagent Systems (previously the International Conference on Multiagent Systems, ICMAS, changed in 2000)",
+			"for_code": "4602"
+		},
+		"ACL": {
+			"rank": "A*",
+			"name": "Association for Computational Linguistics",
+			"for_code": "4602"
+		},
+		"AIED": {
+			"rank": "A",
+			"name": "International Conference on Artificial Intelligence in Education",
+			"for_code": "4601"
+		},
+		"AISTATS": {
+			"rank": "A",
+			"name": "International Conference on Artificial Intelligence and Statistics",
+			"for_code": "4611"
+		},
+		"BMVC": {
+			"rank": "A",
+			"name": "British Machine Vision Conference",
+			"for_code": "4603"
+		},
+		"CHI": {
+			"rank": "A*",
+			"name": "International Conference on Human Factors in Computing Systems",
+			"for_code": "4608"
+		},
+		"CIKM": {
+			"rank": "A",
+			"name": "ACM International Conference on Information and Knowledge Management",
+			"for_code": "4605"
+		},
+		"COLING": {
+			"rank": "B",
+			"name": "International Conference on Computational Linguistics",
+			"for_code": "4602"
+		},
+		"CSCW": {
+			"rank": "A",
+			"name": "ACM Conference on Computer Supported Cooperative Work",
+			"for_code": "4608"
+		},
+		"CVPR": {
+			"rank": "A*",
+			"name": "IEEE Conference on Computer Vision and Pattern Recognition",
+			"for_code": "4603"
+		},
+		"CONLL": {
+			"rank": "B",
+			"name": "Conference on Computational Natural Language Learning",
+			"for_code": "4602"
+		},
+		"EACL": {
+			"rank": "A",
+			"name": "European Association for Computational Linguistics",
+			"for_code": "4602"
+		},
+		"ECCV": {
+			"rank": "A*",
+			"name": "European Conference on Computer Vision",
+			"for_code": "4603"
+		},
+		"ECIR": {
+			"rank": "A",
+			"name": "European Conference on Information Retrieval",
+			"for_code": "4605"
+		},
+		"ECML PKDD": {
+			"rank": "A",
+			"name": "European Conference on Machine Learning and Principles and Practice of Knowledge Discovery in Database (PKDD and ECML combined from 2008)",
+			"for_code": "4611"
+		},
+		"EDM": {
+			"rank": "B",
+			"name": "Educational Data Mining",
+			"for_code": "4601"
+		},
+		"EMNLP": {
+			"rank": "A*",
+			"name": "Empirical Methods in Natural Language Processing",
+			"for_code": "4602"
+		},
+		"ICASSP": {
+			"rank": "B",
+			"name": "IEEE International Conference on Acoustics, Speech and Signal Processing",
+			"for_code": "4603"
+		},
+		"ICCV": {
+			"rank": "A*",
+			"name": "IEEE International Conference on Computer Vision",
+			"for_code": "4603"
+		},
+		"ICDE-1": {
+			"rank": "A*",
+			"name": "International Conference on Data Engineering",
+			"for_code": "4605"
+		},
+		"ICDE-2": {
+			"rank": "A*",
+			"name": "International Conference on Data Engineering",
+			"for_code": "4605"
+		},
+		"ICDM": {
+			"rank": "A*",
+			"name": "IEEE International Conference on Data Mining",
+			"for_code": "4605"
+		},
+		"ICLR": {
+			"rank": "A*",
+			"name": "International Conference on Learning Representations",
+			"for_code": "4611"
+		},
+		"ICML": {
+			"rank": "A*",
+			"name": "International Conference on Machine Learning",
+			"for_code": "4611"
+		},
+		"ICRA": {
+			"rank": "A*",
+			"name": "IEEE International Conference on Robotics and Automation",
+			"for_code": "4602"
+		},
+		"IJCAI": {
+			"rank": "A*",
+			"name": "International Joint Conference on Artificial Intelligence",
+			"for_code": "4602"
+		},
+		"INLG": {
+			"rank": "B",
+			"name": "International Natural Language Generation Conference",
+			"for_code": "4602"
+		},
+		"IROS": {
+			"rank": "A",
+			"name": "IEEE/RSJ International Conference on Intelligent Robots and Systems",
+			"for_code": "4602"
+		},
+		"INTERSPEECH": {
+			"rank": "A",
+			"name": "Interspeech (combined EuroSpeech and ICSLP in 2000)",
+			"for_code": "4602"
+		},
+		"KDD": {
+			"rank": "A*",
+			"name": "ACM International Conference on Knowledge Discovery and Data Mining",
+			"for_code": "4605"
+		},
+		"KDD-1": {
+			"rank": "A*",
+			"name": "ACM International Conference on Knowledge Discovery and Data Mining",
+			"for_code": "4605"
+		},
+		"KDD-2": {
+			"rank": "A*",
+			"name": "ACM International Conference on Knowledge Discovery and Data Mining",
+			"for_code": "4605"
+		},
+		"LAK": {
+			"rank": "A",
+			"name": "International Conference on Learning Analytics and Knowledge",
+			"for_code": "4608"
+		},
+		"LREC": {
+			"rank": "B",
+			"name": "Language Resources and Evaluation Conference",
+			"for_code": "4602"
+		},
+		"MM": {
+			"rank": "A*",
+			"name": "ACM Multimedia",
+			"for_code": "4603"
+		},
+		"NAACL": {
+			"rank": "A",
+			"name": "North American Association for Computational Linguistics",
+			"for_code": "4602"
+		},
+		"NEURIPS": {
+			"rank": "A*",
+			"name": "Advances in Neural Information Processing Systems (was NIPS)",
+			"for_code": "4611"
+		},
+		"NEURIPS [DATASET AND BENCHMARKS TRACK]": {
+			"rank": "A*",
+			"name": "Advances in Neural Information Processing Systems (was NIPS)",
+			"for_code": "4611"
+		},
+		"RECSYS": {
+			"rank": "A",
+			"name": "ACM International Conference on Recommender Systems",
+			"for_code": "4605"
+		},
+		"SIGDIAL": {
+			"rank": "B",
+			"name": "Annual Meeting of the Special Interest Group on Discourse and Dialog",
+			"for_code": "4602"
+		},
+		"SIGGRAPH": {
+			"rank": "A*",
+			"name": "ACM SIG International Conference on Computer Graphics and Interactive Techniques",
+			"for_code": "4607"
+		},
+		"SIGGRAPH ASIA": {
+			"rank": "A*",
+			"name": "ACM SIG International Conference on Computer Graphics and Interactive Techniques",
+			"for_code": "4607"
+		},
+		"SIGIR": {
+			"rank": "A*",
+			"name": "ACM International Conference on Research and Development in Information Retrieval",
+			"for_code": "4605"
+		},
+		"SIGMOD-1": {
+			"rank": "A*",
+			"name": "ACM Special Interest Group on Management of Data Conference",
+			"for_code": "4605"
+		},
+		"SIGMOD-2": {
+			"rank": "A*",
+			"name": "ACM Special Interest Group on Management of Data Conference",
+			"for_code": "4605"
+		},
+		"SIGMOD-3": {
+			"rank": "A*",
+			"name": "ACM Special Interest Group on Management of Data Conference",
+			"for_code": "4605"
+		},
+		"SIGMOD-4": {
+			"rank": "A*",
+			"name": "ACM Special Interest Group on Management of Data Conference",
+			"for_code": "4605"
+		},
+		"UAI": {
+			"rank": "A",
+			"name": "Conference in Uncertainty in Artificial Intelligence",
+			"for_code": "4602"
+		},
+		"UMAP": {
+			"rank": "B",
+			"name": "International Conference on User Modelling, Adaptation, and Personalization (was AH and UM)",
+			"for_code": "4608"
+		},
+		"WACV": {
+			"rank": "A",
+			"name": "IEEE Workshop on Applications of Computer Vision",
+			"for_code": "4603"
+		},
+		"WSDM": {
+			"rank": "A",
+			"name": "ACM International Conference on Web Search and Data Mining",
+			"for_code": "4605"
+		},
+		"WWW": {
+			"rank": "A*",
+			"name": "International World Wide Web Conference",
+			"for_code": "4606"
+		}
+	}
+}
