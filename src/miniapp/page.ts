@@ -229,6 +229,13 @@ export const MINI_APP_HTML = String.raw`<!doctype html>
 
   var initData = (tg && tg.initData) || "";
 
+  /*
+   * Opened outside Telegram there is no signed initData, so every
+   * API call would 401. Say so plainly instead of showing the
+   * user a failed request.
+   */
+  var outsideTelegram = !initData;
+
   var state = {
     view: "upcoming",
     search: "",
@@ -260,10 +267,19 @@ export const MINI_APP_HTML = String.raw`<!doctype html>
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({ initData: initData }, body || {}))
     }).then(function (response) {
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
+      if (response.ok) {
+        return response.json();
       }
-      return response.json();
+
+      /* Surface the server's reason so failures are diagnosable. */
+      return response.json().catch(function () {
+        return {};
+      }).then(function (data) {
+        throw new Error(
+          "HTTP " + response.status +
+          (data && data.reason ? " (" + data.reason + ")" : "")
+        );
+      });
     });
   }
 
@@ -578,7 +594,18 @@ export const MINI_APP_HTML = String.raw`<!doctype html>
   });
 
   renderChips();
-  load();
+
+  if (outsideTelegram) {
+    els.results.innerHTML =
+      '<p class="empty"><strong>Open this inside Telegram</strong><br><br>' +
+      'This page needs a signed launch from the Telegram app, so it ' +
+      'cannot load conference data in a normal browser.<br><br>' +
+      'Open <b>@AIConfDeadlineBot</b> and tap the menu button, or use ' +
+      't.me/AIConfDeadlineBot/deadlines.</p>';
+    els.more.hidden = true;
+  } else {
+    load();
+  }
 }());
 </script>
 </body>
