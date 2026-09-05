@@ -92,13 +92,13 @@ export async function verifyInitData(
 		return null;
 	}
 
-	params.delete("hash");
-
 	/*
-	 * "signature" is part of the newer third-party validation
-	 * flow and is excluded from the bot's own check.
+	 * Only "hash" comes out. Newer clients also send "signature",
+	 * which stays in: dropping it is correct only for the
+	 * third-party Ed25519 flow, and removing it here makes every
+	 * request from a modern client fail to validate.
 	 */
-	params.delete("signature");
+	params.delete("hash");
 
 	const dataCheckString =
 		[...params.entries()]
