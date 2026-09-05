@@ -1,29 +1,44 @@
 import {
 	Env,
 	TelegramCallbackQuery,
+	ReminderKind,
+	SortPreference,
 } from "../types";
 
 import {
 	editMessageText,
 	answerCallbackQuery,
+	TelegramError,
 } from "../telegram";
 
 import {
+	getUser,
 	saveConference,
 	unsaveConference,
-	setDigest,
-	getTopics,
+	muteConference,
+	unmuteConference,
+	setDigestFrequency,
+	setDigestHour,
+	setDigestWeekday,
+	setQuietHours,
+	setAutoReminderDays,
+	setEscalating,
+	setAlertNewConferences,
+	setAlertDeadlineChanges,
+	setSortPreference,
 	toggleTopic,
-	getLocations,
 	toggleLocation,
+	deleteReminderById,
+	deleteSavedSearch,
+	listSavedSearches,
+	getCallbackToken,
 } from "../database";
 
 import {
-	mainMenu,
 	topicsMenu,
 	locationsMenu,
-	preferenceTopicsMenu,
-	preferenceLocationsMenu,
+	rankMenu,
+	formatMenu,
 } from "../ui";
 
 import {
@@ -37,31 +52,77 @@ import {
 } from "../views/conference";
 
 import {
-	showSettings,
+	showMainMenu,
+	showReminders,
+	showSavedSearches,
+	showTimeline,
 	showHelp,
+	promptFor,
 } from "../views/menu";
 
+import {
+	showSettings,
+	showDigestMenu,
+	showDigestHourMenu,
+	showDigestDayMenu,
+	showQuietHoursMenu,
+	showAutoRemindMenu,
+	showSortMenu,
+	showTopicPreferences,
+	showLocationPreferences,
+} from "../views/settings";
+
+import {
+	sendCalendar,
+} from "../views/export";
+
 /**
- * Routes an inline-keyboard callback to the matching view.
+ * Parses a list route such as "list:topic:CV:2" into its parts.
  */
+function parseListRoute(
+	data: string,
+	userId: string
+): { mode: string; value?: string; page: number } {
+
+	const parts =
+		data.split(":");
+
+	const mode =
+		parts[1];
+
+	if (
+		mode === "upcoming" ||
+		mode === "saved" ||
+		mode === "feed"
+	) {
+
+		return {
+			mode,
+			value:
+				mode === "saved" || mode === "feed"
+					? userId
+					: undefined,
+			page: Number(parts[2]) || 1,
+		};
+	}
+
+	return {
+		mode,
+		value: decodeURIComponent(parts[2] ?? ""),
+		page: Number(parts[3]) || 1,
+	};
+}
 
 export async function handleCallback(
 	env: Env,
 	callback: TelegramCallbackQuery
-) {
-
-	await answerCallbackQuery(
-		env,
-		callback.id
-	);
-
-	const data =
-		callback.data || "";
+): Promise<void> {
 
 	const message =
 		callback.message;
 
 	if (!message) {
+		await answerCallbackQuery(env, callback.id);
 		return;
 	}
 
@@ -72,496 +133,608 @@ export async function handleCallback(
 		message.message_id;
 
 	const userId =
-		String(
-			callback.from.id
-		);
+		String(callback.from.id);
+
+	let data =
+		callback.data || "";
 
 	/*
-	 * noop
+	 * callback_data is capped at 64 bytes; anything longer was
+	 * stored server-side and is referenced by a short token.
 	 */
+	if (data.startsWith("tok:")) {
 
-	if (data === "noop") {
-		return;
+		const payload =
+			await getCallbackToken(env, data.slice(4));
+
+		if (!payload) {
+
+			await answerCallbackQuery(
+				env,
+				callback.id,
+				"That button has expired. Open the menu again.",
+				true
+			);
+
+			return;
+		}
+
+		data = payload;
 	}
 
 	/*
-	 * Main menu
+	 * A silent acknowledgement stops the client spinner. Actions
+	 * that deserve feedback answer again with a toast, which
+	 * Telegram accepts.
 	 */
+	if (data !== "noop") {
+		await answerCallbackQuery(env, callback.id);
+	} else {
+		await answerCallbackQuery(env, callback.id);
+		return;
+	}
 
-	if (
-		data === "menu:main"
-	) {
+	try {
+		await route(env, callback, data, chatId, messageId, userId);
+
+	} catch (error) {
+
+		console.error("Callback failed:", data, error);
+
+		await answerCallbackQuery(
+			env,
+			callback.id,
+			error instanceof TelegramError
+				? "Telegram rejected that action. Try again."
+				: "Something went wrong. Try again.",
+			true
+		);
+	}
+}
+
+async function route(
+	env: Env,
+	callback: TelegramCallbackQuery,
+	data: string,
+	chatId: number,
+	messageId: number,
+	userId: string
+): Promise<void> {
+
+	/* ---------- navigation ---------- */
+
+	if (data === "menu:main") {
+		await showMainMenu(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "back") {
+
+		const user =
+			await getUser(env, userId);
+
+		const route =
+			user?.last_list ?? "list:upcoming:1";
+
+		const parsed =
+			parseListRoute(route, userId);
+
+		await showList(
+			env,
+			chatId,
+			parsed.mode,
+			parsed.value,
+			parsed.page,
+			messageId,
+			user
+		);
+
+		return;
+	}
+
+	if (data === "menu:topics") {
 
 		await editMessageText(
 			env,
 			chatId,
 			messageId,
-			`🤖 AI Conference Deadlines
-
-Choose an option:`,
-			mainMenu()
-		);
-
-		return;
-	}
-
-	/*
-	 * Topics menu
-	 */
-
-	if (
-		data === "menu:topics"
-	) {
-
-		await editMessageText(
-			env,
-			chatId,
-			messageId,
-			"🏷 Browse by Topic",
+			"🏷 <b>Browse by topic</b>",
 			topicsMenu()
 		);
 
 		return;
 	}
 
-	/*
-	 * Locations menu
-	 */
-
-	if (
-		data === "menu:locations"
-	) {
+	if (data === "menu:locations") {
 
 		await editMessageText(
 			env,
 			chatId,
 			messageId,
-			"🌍 Browse by Location",
+			"🌍 <b>Browse by location</b>",
 			locationsMenu()
 		);
 
 		return;
 	}
 
-	/*
-	 * List callbacks
-	 */
+	if (data === "menu:rank") {
 
-	if (
-		data.startsWith(
-			"list:"
-		)
-	) {
+		await editMessageText(
+			env,
+			chatId,
+			messageId,
+			"🏅 <b>Browse by CORE rank</b>\n\n" +
+			"<i>Rankings come from the CORE portal. Newer venues " +
+			"and workshops are often unranked.</i>",
+			rankMenu()
+		);
 
-		const parts =
-			data.split(":");
+		return;
+	}
 
-		const mode =
-			parts[1];
+	if (data === "menu:format") {
 
-		let value:
-			string | undefined;
+		await editMessageText(
+			env,
+			chatId,
+			messageId,
+			"🔀 <b>Browse by format</b>",
+			formatMenu()
+		);
 
-		let page =
-			1;
+		return;
+	}
 
-		if (
-			mode === "upcoming" ||
-			mode === "saved" ||
-			mode === "feed"
-		) {
+	if (data.startsWith("menu:sort:")) {
 
-			page =
-				Number(
-					parts[2]
-				) || 1;
+		await showSortMenu(
+			env,
+			chatId,
+			messageId,
+			data.slice("menu:sort:".length)
+		);
 
-			value =
-				mode === "saved" ||
-					mode === "feed"
-					? userId
-					: undefined;
+		return;
+	}
 
-		} else {
+	/* ---------- lists ---------- */
 
-			page =
-				Number(
-					parts[3]
-				) || 1;
+	if (data.startsWith("list:")) {
 
-			value =
-				decodeURIComponent(
-					parts[2] || ""
-				);
-		}
+		const parsed =
+			parseListRoute(data, userId);
 
 		await showList(
 			env,
 			chatId,
-			mode,
-			value,
-			page,
+			parsed.mode,
+			parsed.value,
+			parsed.page,
 			messageId
 		);
 
 		return;
 	}
 
-	/*
-	 * Conference
-	 */
+	if (data.startsWith("similar:")) {
 
-	if (
-		data.startsWith(
-			"conf:"
-		)
-	) {
+		await showList(
+			env,
+			chatId,
+			"similar",
+			data.slice("similar:".length),
+			1,
+			messageId
+		);
 
-		const conferenceId =
-			data.substring(
-				"conf:".length
-			);
+		return;
+	}
+
+	if (data === "timeline") {
+		await showTimeline(env, chatId, messageId);
+		return;
+	}
+
+	/* ---------- conference ---------- */
+
+	if (data.startsWith("conf:")) {
 
 		await showConference(
 			env,
 			chatId,
-			conferenceId,
+			data.slice("conf:".length),
 			messageId
 		);
 
 		return;
 	}
 
-	/*
-	 * Save
-	 */
+	if (data.startsWith("save:") || data.startsWith("unsave:")) {
 
-	if (
-		data.startsWith(
-			"save:"
-		)
-	) {
+		const saving =
+			data.startsWith("save:");
 
 		const conferenceId =
-			data.substring(
-				"save:".length
-			);
+			data.slice(saving ? 5 : 7);
 
-		await saveConference(
-			env,
-			userId,
-			conferenceId
-		);
+		if (saving) {
+			await saveConference(env, userId, conferenceId);
+		} else {
+			await unsaveConference(env, userId, conferenceId);
+		}
 
 		await answerCallbackQuery(
 			env,
 			callback.id,
-			"⭐ Saved!"
+			saving ? "⭐ Saved" : "Removed from saved"
 		);
 
-		await showConference(
-			env,
-			chatId,
-			conferenceId,
-			messageId
-		);
+		await showConference(env, chatId, conferenceId, messageId);
 
 		return;
 	}
 
-	/*
-	 * Unsave
-	 */
+	if (data.startsWith("mute:") || data.startsWith("unmute:")) {
 
-	if (
-		data.startsWith(
-			"unsave:"
-		)
-	) {
+		const muting =
+			data.startsWith("mute:");
 
 		const conferenceId =
-			data.substring(
-				"unsave:".length
-			);
+			data.slice(muting ? 5 : 7);
 
-		await unsaveConference(
-			env,
-			userId,
-			conferenceId
-		);
+		if (muting) {
+			await muteConference(env, userId, conferenceId);
+		} else {
+			await unmuteConference(env, userId, conferenceId);
+		}
 
 		await answerCallbackQuery(
 			env,
 			callback.id,
-			"Removed from saved."
+			muting
+				? "🔕 Muted — no alerts for this one"
+				: "🔔 Unmuted"
 		);
 
-		await showConference(
-			env,
-			chatId,
-			conferenceId,
-			messageId
-		);
+		await showConference(env, chatId, conferenceId, messageId);
 
 		return;
 	}
 
-	/*
-	 * Reminder menu
-	 */
+	/* ---------- reminders ---------- */
 
-	if (
-		data.startsWith(
-			"remind:"
-		)
-	) {
-
-		const conferenceId =
-			data.substring(
-				"remind:".length
-			);
+	if (data.startsWith("remind:")) {
 
 		await showReminderMenu(
 			env,
 			chatId,
-			conferenceId
+			data.slice("remind:".length),
+			messageId
 		);
 
 		return;
 	}
 
-	/*
-	 * Set reminder
-	 */
+	if (data.startsWith("setrem:")) {
 
-	if (
-		data.startsWith(
-			"setrem:"
-		)
-	) {
-
-		const parts =
+		const [, conferenceId, kind, offset] =
 			data.split(":");
-
-		const conferenceId =
-			parts[1];
-
-		const days =
-			Number(parts[2]);
 
 		await createConferenceReminder(
 			env,
 			chatId,
 			conferenceId,
-			days
+			(kind as ReminderKind) ?? "paper",
+			offset === "escalate" ? "escalate" : Number(offset)
 		);
 
 		return;
 	}
 
-	/*
-	 * Settings
-	 */
+	if (data.startsWith("delrem:")) {
 
-	if (
-		data === "settings"
-	) {
-
-		await showSettings(
-			env,
-			chatId
-		);
-
-		return;
-	}
-
-	/*
-	 * Digest
-	 */
-
-	if (
-		data === "digest:on"
-	) {
-
-		await setDigest(
-			env,
-			userId,
-			true
-		);
-
-		await showSettings(
-			env,
-			chatId
-		);
-
-		return;
-	}
-
-	if (
-		data === "digest:off"
-	) {
-
-		await setDigest(
-			env,
-			userId,
-			false
-		);
-
-		await showSettings(
-			env,
-			chatId
-		);
-
-		return;
-	}
-
-	/*
-	 * Topic preferences
-	 */
-
-	if (
-		data === "settings:topics"
-	) {
-
-		const selected =
-			await getTopics(
+		const removed =
+			await deleteReminderById(
 				env,
-				userId
+				userId,
+				Number(data.slice("delrem:".length))
 			);
 
-		await editMessageText(
+		await answerCallbackQuery(
+			env,
+			callback.id,
+			removed ? "🗑 Reminder deleted" : "Already gone"
+		);
+
+		await showReminders(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data === "reminders") {
+		await showReminders(env, chatId, messageId);
+		return;
+	}
+
+	/* ---------- saved searches ---------- */
+
+	if (data === "savedsearches") {
+		await showSavedSearches(env, chatId, messageId);
+		return;
+	}
+
+	if (data.startsWith("runsearch:")) {
+
+		const searches =
+			await listSavedSearches(env, userId);
+
+		const search =
+			searches.find(
+				entry =>
+					entry.id === Number(data.slice("runsearch:".length))
+			);
+
+		if (!search) {
+
+			await answerCallbackQuery(
+				env,
+				callback.id,
+				"That search no longer exists.",
+				true
+			);
+
+			return;
+		}
+
+		await showList(
 			env,
 			chatId,
-			messageId,
-			"🧠 Choose your preferred topics:",
-			preferenceTopicsMenu(
-				selected
-			)
+			"search",
+			search.query,
+			1,
+			messageId
 		);
 
 		return;
 	}
 
-	/*
-	 * Location preferences
-	 */
+	if (data.startsWith("delsearch:")) {
 
-	if (
-		data === "settings:locations"
-	) {
+		await deleteSavedSearch(
+			env,
+			userId,
+			Number(data.slice("delsearch:".length))
+		);
 
-		const selected =
-			await getLocations(
-				env,
-				userId
-			);
+		await answerCallbackQuery(env, callback.id, "🗑 Deleted");
 
-		await editMessageText(
+		await showSavedSearches(env, chatId, messageId);
+
+		return;
+	}
+
+	/* ---------- prompts ---------- */
+
+	if (data.startsWith("prompt:")) {
+
+		await promptFor(
 			env,
 			chatId,
-			messageId,
-			"🌍 Choose your preferred locations:",
-			preferenceLocationsMenu(
-				selected
-			)
+			data.slice("prompt:".length) as
+			"search" | "timezone" | "save_search"
 		);
 
 		return;
 	}
 
-	/*
-	 * Topic toggle
-	 */
+	/* ---------- calendar export ---------- */
 
-	if (
-		data.startsWith(
-			"pref:topic:"
-		)
-	) {
+	if (data.startsWith("ics:")) {
 
-		const topic =
-			data.substring(
-				"pref:topic:".length
+		await sendCalendar(
+			env,
+			chatId,
+			data.slice("ics:".length)
+		);
+
+		await answerCallbackQuery(env, callback.id, "📆 Sent");
+
+		return;
+	}
+
+	/* ---------- settings ---------- */
+
+	if (data === "settings") {
+		await showSettings(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "settings:digest") {
+		await showDigestMenu(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "settings:digesthour") {
+		await showDigestHourMenu(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "settings:digestday") {
+		await showDigestDayMenu(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "settings:quiet") {
+		await showQuietHoursMenu(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "settings:autoremind") {
+		await showAutoRemindMenu(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "settings:topics") {
+		await showTopicPreferences(env, chatId, messageId);
+		return;
+	}
+
+	if (data === "settings:locations") {
+		await showLocationPreferences(env, chatId, messageId);
+		return;
+	}
+
+	if (data.startsWith("digest:")) {
+
+		await setDigestFrequency(
+			env,
+			userId,
+			data.slice("digest:".length) as "daily" | "weekly" | "off"
+		);
+
+		await showSettings(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data.startsWith("digesthour:")) {
+
+		await setDigestHour(
+			env,
+			userId,
+			Number(data.slice("digesthour:".length))
+		);
+
+		await showSettings(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data.startsWith("digestday:")) {
+
+		await setDigestWeekday(
+			env,
+			userId,
+			Number(data.slice("digestday:".length))
+		);
+
+		await showSettings(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data.startsWith("quiet:")) {
+
+		const value =
+			data.slice("quiet:".length);
+
+		if (value === "off") {
+			await setQuietHours(env, userId, null, null);
+
+		} else {
+
+			const [start, end] =
+				value.split(":").map(Number);
+
+			await setQuietHours(env, userId, start, end);
+		}
+
+		await showSettings(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data.startsWith("autoremind:")) {
+
+		const value =
+			data.slice("autoremind:".length);
+
+		await setAutoReminderDays(
+			env,
+			userId,
+			value === "off" ? null : Number(value)
+		);
+
+		await showSettings(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data.startsWith("sort:")) {
+
+		await setSortPreference(
+			env,
+			userId,
+			data.slice("sort:".length) as SortPreference
+		);
+
+		await answerCallbackQuery(env, callback.id, "↕️ Sort updated");
+
+		await showSettings(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data.startsWith("toggle:")) {
+
+		const user =
+			await getUser(env, userId);
+
+		const which =
+			data.slice("toggle:".length);
+
+		if (which === "escalating") {
+			await setEscalating(env, userId, !user?.escalating_enabled);
+
+		} else if (which === "newconf") {
+			await setAlertNewConferences(
+				env,
+				userId,
+				!user?.alert_new_conferences
 			);
+
+		} else if (which === "changes") {
+			await setAlertDeadlineChanges(
+				env,
+				userId,
+				!user?.alert_deadline_changes
+			);
+		}
+
+		await showSettings(env, chatId, messageId);
+
+		return;
+	}
+
+	if (data.startsWith("pref:topic:")) {
 
 		await toggleTopic(
 			env,
 			userId,
-			topic
+			data.slice("pref:topic:".length)
 		);
 
-		const selected =
-			await getTopics(
-				env,
-				userId
-			);
-
-		await editMessageText(
-			env,
-			chatId,
-			messageId,
-			"🧠 Choose your preferred topics:",
-			preferenceTopicsMenu(
-				selected
-			)
-		);
+		await showTopicPreferences(env, chatId, messageId);
 
 		return;
 	}
 
-	/*
-	 * Location toggle
-	 */
-
-	if (
-		data.startsWith(
-			"pref:location:"
-		)
-	) {
-
-		const location =
-			data.substring(
-				"pref:location:".length
-			);
+	if (data.startsWith("pref:location:")) {
 
 		await toggleLocation(
 			env,
 			userId,
-			location
+			data.slice("pref:location:".length)
 		);
 
-		const selected =
-			await getLocations(
-				env,
-				userId
-			);
-
-		await editMessageText(
-			env,
-			chatId,
-			messageId,
-			"🌍 Choose your preferred locations:",
-			preferenceLocationsMenu(
-				selected
-			)
-		);
+		await showLocationPreferences(env, chatId, messageId);
 
 		return;
 	}
 
-	/*
-	 * Help
-	 */
-
-	if (
-		data === "help"
-	) {
-
-		await showHelp(
-			env,
-			chatId
-		);
-
+	if (data === "help") {
+		await showHelp(env, chatId, messageId);
 		return;
 	}
 }
